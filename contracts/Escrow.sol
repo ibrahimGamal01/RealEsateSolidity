@@ -15,37 +15,55 @@ interface IERC721 {
 contract Escrow {
 // Define New contract `Escrow`
 
+
+    //  Declare state variables
     address public nftAddress; // declare public nft address
     address payable public seller; // public seller address
     address public inspector; // inspector address
     address public lender; // lender address
-// ---------------------------------------
+
+
+    // -------------------------------------------------------------------------------------
+
+    // Define the Modifiers
+
+    // Modifiers: to add additional conditions, typically used to enforce access control or validate certain conditions
+
     modifier onlyBuyer(uint256 _nftID) {
-        require(msg.sender == buyer[_nftID], "Only buyer can call this method");
-        _;
+        require(msg.sender == buyer[_nftID], "Only buyer can call this method"); // checks if the caller is the buyer of the NFT
+        _; // returns the address of the buyer 
     }
-    // This is a modifier that checks if the caller is the buyer of the NFT.
+    // Simply check on this line if the caller is the buyer of the NFT. If not, it will revert with the error message "Only buyer can call this method".
 
     modifier onlySeller() {
         require(msg.sender == seller, "Only seller can call this method");
         _;
     }
-    // This is a modifier that checks if the caller is the seller.
+    // This modifier that checks if the caller is the seller.
 
     modifier onlyInspector() {
         require(msg.sender == inspector, "Only inspector can call this method");
         _;
     }
-    // This is a modifier that checks if the caller is the inspector.
+    // This modifier that checks if the caller is the inspector.
 
-    mapping(uint256 => bool) public isListed;
+    // -------------------------------------------------------------------------------------
+
+    // Define the mappings (metadata connections between the NFT and the contract)
+    // The mappings are used to store information about each NFT
+
+    mapping(uint256 => bool) public isListed; // to check if the NFT is listed
     mapping(uint256 => uint256) public purchasePrice;
     mapping(uint256 => uint256) public escrowAmount;
     mapping(uint256 => address) public buyer;
     mapping(uint256 => bool) public inspectionPassed;
     mapping(uint256 => mapping(address => bool)) public approval;
-    // These lines declare mappings to store various information about each NFT, such as whether it is listed, its purchase price, escrow amount, buyer, inspection status, and approval status.
 
+    // -------------------------------------------------------------------------------------
+
+    // Define the constructor function (initialize the contract with the NFT address, seller, inspector, and lender)
+    // Executed only once when the contract is deployed
+    // So this is like a solid definition of fields, where ( at the deployment ) you define that in this field everyone is putting the seller's name, and this field is for the nft address ...etc
     constructor(
         address _nftAddress,
         address payable _seller,
@@ -57,14 +75,28 @@ contract Escrow {
         inspector = _inspector;
         lender = _lender;
     }
-    // The constructor function is a special function that is executed only once when the contract is deployed. In this case, it sets the NFT address, seller, inspector, and lender.
 
+    // -------------------------------------------------------------------------------------
+    //  Our logic is that we are specifing the buyer while listing the property for sale, if we did not want to do this we should do the following:
+    // 1- Remove the buyer from the list function
+    // 2- Add a new function to set the buyer address
+            // Buy NFT (anyone can call)
+            // function buy(uint256 _nftID) public {
+            //     require(isListed[_nftID], "NFT is not listed for sale");
+            //     buyer[_nftID] = msg.sender;
+            // } 
+    // Lots of complications so we are sticking with this is a smart contract reserver not booking   
+    
+
+    // List NFT for Sale (only seller)
     function list(
+        // Define the needed parameters for the function
         uint256 _nftID,
         address _buyer,
         uint256 _purchasePrice,
         uint256 _escrowAmount
-    ) public payable onlySeller {
+    ) public payable onlySeller { // Only the seller can call this function (check onlyseller before excuting)
+    
         // Transfer NFT from seller to this contract
         IERC721(nftAddress).transferFrom(msg.sender, address(this), _nftID);
 
@@ -73,18 +105,22 @@ contract Escrow {
         escrowAmount[_nftID] = _escrowAmount;
         buyer[_nftID] = _buyer;
     }
-    // This function allows the seller to list an NFT for sale. It transfers the NFT from the seller to the contract and stores the buyer, purchase price, and escrow amount.
+    // It transfers the NFT from the seller to the contract and stores the buyer, purchase price, and escrow amount.
+
+
+    // -------------------------------------------------------------------------------------
+
 
     // Put Under Contract (only buyer - payable escrow)
     function depositEarnest(uint256 _nftID) public payable onlyBuyer(_nftID) {
-        require(msg.value >= escrowAmount[_nftID]);
+        require(msg.value >= escrowAmount[_nftID]); // deposit should be >= escrow amount
     }
-    // This function allows the buyer to deposit the escrow amount. It checks that the deposited amount is at least equal to the escrow amount.
+    // Allows the buyer to deposit the escrow amount. 
 
     // Update Inspection Status (only inspector)
     function updateInspectionStatus(uint256 _nftID, bool _passed)
         public
-        onlyInspector
+        onlyInspector 
     {
         inspectionPassed[_nftID] = _passed;
     }
@@ -97,7 +133,7 @@ contract Escrow {
     // This function allows any address to approve the sale of the NFT.
 
     // Finalize Sale
-    // -> Require inspection status (add more items here, like appraisal)
+    // -> Require inspection status to be approved
     // -> Require sale to be authorized
     // -> Require funds to be correct amount
     // -> Transfer NFT to buyer
@@ -109,7 +145,7 @@ contract Escrow {
         require(approval[_nftID][lender]);
         require(address(this).balance >= purchasePrice[_nftID]);
 
-        isListed[_nftID] = false;
+        isListed[_nftID] = false; // remove listing
 
         (bool success, ) = payable(seller).call{value: address(this).balance}(
             ""
