@@ -60,8 +60,4 @@ contract RealEstateEscrow is ERC721 {
         Listing storage listing = listings[tokenId]; // Get the listing for the token
         listing.inspectionPassed = passed; // Set the inspection status
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> e1344b21b2311bf3cd8ff52f28980acb3b00829c
