@@ -16,10 +16,14 @@ contract RealEstateEscrow is ERC721 {
         bool inspectionPassed; // Flag indicating if the property has passed inspection
     }
 
-    // Mapping to store listings for each token ID
+    // Mapping listings <=> token ID
+    // used to link token IDs with their listing information.
+    // public: mapping can be accessed from outside, no need to get the data as  its public property
+    // listings: This is the name of the mapping
     mapping(uint => Listing) public listings;
 
     // Constructor to initialize the contract with a name and symbol
+    // runs only once when the contract is deployed
     constructor() ERC721("Real Estate", "REAL") {
         manager = msg.sender; // Set the manager as the contract deployer
     }
