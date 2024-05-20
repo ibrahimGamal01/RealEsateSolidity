@@ -16,10 +16,15 @@ contract RealEstateEscrow is ERC721 {
         bool inspectionPassed; // Flag indicating if the property has passed inspection
     }
 
+<<<<<<< HEAD
     // Mapping listings <=> token ID
     // used to link token IDs with their listing information.
     // public: mapping can be accessed from outside, no need to get the data as  its public property
     // listings: This is the name of the mapping
+=======
+
+    // Mapping to store listings for each token ID
+>>>>>>> 41ef40161f9642fabc733b39ea4cc8d8cc5e7222
     mapping(uint => Listing) public listings;
 
     // Constructor to initialize the contract with a name and symbol
