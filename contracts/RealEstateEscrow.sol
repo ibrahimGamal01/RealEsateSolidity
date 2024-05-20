@@ -16,6 +16,7 @@ contract RealEstateEscrow is ERC721 {
         bool inspectionPassed; // Flag indicating if the property has passed inspection
     }
 
+
     // Mapping to store listings for each token ID
     mapping(uint => Listing) public listings;
 
